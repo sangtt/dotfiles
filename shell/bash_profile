@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+# Only run this file once. If $DOTFILES_DIRECTORY is zero length then we will
+# proceed otherwise nothing will happen
+if [ -z "$DOTFILES_DIRECTORY" ]; then
+
+    # Here we only set the `$DOTFILES_DIRECTORY` if it is undefined. This allows us
+    # to define the location in a "unlinked" `.bash_profile` file.
+    if [ -z "$DOTFILES_DIRECTORY" ]; then
+
+        # Here we determine the location of the `.dotfiles` repo
+        if [ -L "$HOME/.dotfiles" ]; then
+            DOTFILES_DIRECTORY=$(readlink "$HOME/.dotfiles")
+        else
+            DOTFILES_DIRECTORY=$HOME/.dotfiles
+        fi
+
+        # Now we make the variable globally accesible
+        export DOTFILES_DIRECTORY
+
+    fi
+
+    # We do the same thing for our `$VIM_DIRECTORY`
+    if [ -z "$VIM_DIRECTORY" ]; then
+
+        # Unless defined elsewhere, we will use the default location for our folder
+        VIM_DIRECTORY=$HOME/.vim
+
+        # Now we make the variable globally accesible
+        export VIM_DIRECTORY
+
+    fi
+
+    # Add the `$DOTFILES_DIRECTORY` directory to the `$PATH`
+    export PATH="$DOTFILES_DIRECTORY/bin:$PATH"
+
+    # And here we boot of the scripts
+    source "$DOTFILES_DIRECTORY/bin/sauce"
+
+fi
+
+# vim: set syn=sh :

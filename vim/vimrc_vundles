@@ -1,0 +1,38 @@
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+
+Plugin 'VundleVim/Vundle.vim'
+Plugin 'rking/ag.vim'
+Plugin 'chriskempson/base16-vim'
+Plugin 'editorconfig-vim'
+Plugin 'mattn/emmet-vim'
+Plugin 'html5.vim'
+Plugin 'scrooloose/nerdtree'
+Plugin 'powerline/powerline'
+Plugin 'MarcWeber/vim-addon-mw-utils'
+Plugin 'tomtom/tlib_vim'
+Plugin 'garbas/vim-snipmate'
+Plugin 'honza/vim-snippets'
+Plugin 'leafgarland/typescript-vim'
+Plugin 'xsbeats/vim-blade'
+Plugin 'tpope/vim-commentary'
+Plugin 'hail2u/vim-css3-syntax'
+Plugin 'ctrlp.vim'
+Plugin 'tpope/vim-cucumber'
+Plugin 'easymotion/vim-easymotion'
+Plugin 'tpope/vim-fugitive'
+Plugin 'nathanaelkane/vim-indent-guides'
+Plugin 'pangloss/vim-javascript'
+Plugin 'elzr/vim-json'
+Plugin 'terryma/vim-multiple-cursors'
+Plugin 'mustache/vim-mustache-handlebars'
+Plugin 'jistr/vim-nerdtree-tabs'
+Plugin 'tpope/vim-pathogen'
+Plugin 'danro/rename.vim'
+Plugin 'tpope/vim-repeat'
+Plugin 'wavded/vim-stylus'
+Plugin 'tpope/vim-surround'
+Plugin 'mattn/webapi-vim'
+
+call vundle#end()
+filetype plugin indent on

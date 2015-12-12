@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+# This is just a quick way of jumping up directories
+alias        ..="cd ../"
+alias       ...="cd ../../"
+alias      ....="cd ../../../"
+alias     .....="cd ../../../../"
+
+# Quickly jump to some system folders
+alias   desktop="cd ~/Desktop/"
+alias downloads="cd ~/Downloads/"
+alias documents="cd ~/Documents/"
+alias   dropbox="cd ~/Dropbox/"
+alias     sites="cd ~/Sites/"
+
+# Dev folders
+alias   archive="cd ~/Archive/"
+alias      code="cd ~/Code/"
+alias       dev="cd ~/Dev/"
+alias       oss="cd ~/OSS/"
+alias      work="cd ~/Work/"
+
+# vim: set syn=sh :

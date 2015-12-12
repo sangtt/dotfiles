@@ -1,0 +1,209 @@
+#!/usr/bin/env bash
+
+# The directory in which to store the backups of our files
+DOTFILES_BACKUP_DIRECTORY="backups"
+
+# This is the location in which we will be linking our files
+TARGET_LINK_DIR=$HOME
+
+# If we are in a vagrant instance, we will manually override that link here
+if [ -d /home/vagrant ]; then
+    TARGET_LINK_DIR="/home/vagrant"
+    DOTFILES_DIRECTORY="/home/vagrant/.dotfiles"
+elif [ -L "$HOME/.dotfiles" ]; then
+    DOTFILES_DIRECTORY=$(readlink "$HOME/.dotfiles")
+else
+    DOTFILES_DIRECTORY="$HOME/.dotfiles"
+fi
+
+# This function goes through the directory where the files were linked and moves
+# them to a defined "backup" directory that is prefixed by a timestamp.
+function backup_prev() {
+
+    # Define our directories to work with
+    TIMESTAMP_DIRECTORY="$(date +%Y-%m-%d_%H-%M-%S)"
+    BACKUP_DIRECTORY="$DOTFILES_DIRECTORY/$DOTFILES_BACKUP_DIRECTORY/$TIMESTAMP_DIRECTORY"
+
+    # If the user is spamming this command more than once per second, we should
+    # just bail now. What this is actually saying is if the directory already
+    # exists, (defined down to the second), when then just kill the shell.
+    if [ -d "$BACKUP_DIRECTORY" ]; then
+        exit 0
+    fi
+
+    # Create the timestamped backup directory. We use `-p` to ensure that all
+    # the directories leading up to this one is made correctly.
+    mkdir -p "$BACKUP_DIRECTORY"
+    chmod 755 "$BACKUP_DIRECTORY"
+
+    # Test to make sure that our directory was created
+    if [ ! -d "$BACKUP_DIRECTORY" ]; then
+        e_error "Unable to create \"Backup directory\": $BACKUP_DIRECTORY.  Aborting"
+        exit 1
+    fi
+
+    # Define an array of items to backup
+    declare -a items_to_backup=(
+        "$TARGET_LINK_DIR/.babunrc"
+        "$TARGET_LINK_DIR/.bash_logout"
+        "$TARGET_LINK_DIR/.bash_profile"
+        "$TARGET_LINK_DIR/.bash_proxy"
+        "$TARGET_LINK_DIR/.bashrc"
+        "$TARGET_LINK_DIR/.config/powerline"
+        "$TARGET_LINK_DIR/.curlrc"
+        "$TARGET_LINK_DIR/.dir_colors"
+        "$TARGET_LINK_DIR/.fonts"
+        "$TARGET_LINK_DIR/.git_templates"
+        "$TARGET_LINK_DIR/.gitattributes"
+        "$TARGET_LINK_DIR/.gitconfig"
+        "$TARGET_LINK_DIR/.gitignore_global"
+        "$TARGET_LINK_DIR/.inputrc"
+        "$TARGET_LINK_DIR/.keys"
+        "$TARGET_LINK_DIR/.minttyrc"
+        "$TARGET_LINK_DIR/.profile"
+        "$TARGET_LINK_DIR/.vim"
+        "$TARGET_LINK_DIR/.vimrc"
+        "$TARGET_LINK_DIR/.wgetrc"
+    )
+
+    # Move all the matching items
+    for item in "${items_to_backup[@]}"
+    do
+
+        # Backup the items if they exist
+        if [ -f $item ] || [ -d $item ]; then
+            e_info "Backing up item \"${item}\""
+            mv $item "$BACKUP_DIRECTORY"
+        fi
+
+    done;
+
+    # If the directory is empty, we can just delete it because
+    # nothing was backed up
+    if [ ! "$(command ls -A "$BACKUP_DIRECTORY")" ]; then
+        rm -rf "$BACKUP_DIRECTORY"
+        e_info "No Files to backup"
+
+    # Since we have files to work with, make sure that we set the ownership
+    # correctly.
+    else
+
+        # Set it for `cygwin`.
+        if [ "$(uname -s | grep -c CYGWIN)" -gt 0 ]; then
+            chgrp -R Users "$BACKUP_DIRECTORY"
+
+        # And for `vagrant`.
+        elif [ -d /home/vagrant ]; then
+            chown -R vagrant:vagrant "$BACKUP_DIRECTORY"
+        fi
+
+        # Finally inform the user where the backup is located.
+        e_header "Backup located at: \"$BACKUP_DIRECTORY\""
+
+    fi
+
+}
+
+# Force create/replace symbolic symlink.
+function link() {
+
+    # Link the file
+    ln -fs "$1" "$2"
+
+    # Adjust the permissions of the files
+    if [ -d /home/vagrant ]; then
+
+        # Taken from `man`:
+        # -h, --no-dereference
+        # Affect symbolic links instead of any referenced file (useful only on
+        # systems that can change the ownership of a sym-link
+        chown --no-dereference vagrant:vagrant "$2"
+
+    fi
+
+}
+
+# Link the files from within the repo to a given "target". We use a variable
+# here because we don't always want to link to the `$HOME` directory.
+function link_files() {
+
+    # Here we backup any previous versions of the files. Here `$1 refers to the
+    # directory that was passed to `link_files`. This is dynamic because the
+    # repo is not located in a fixed place.
+    backup_prev "$1"
+
+    # Here we delete the previously linked folders
+    if [ -d $TARGET_LINK_DIR/.fonts ]; then
+        rm $TARGET_LINK_DIR/.fonts
+    fi
+
+    # Same goes for the vim folder
+    if [ -d $TARGET_LINK_DIR/.vim ]; then
+        rm $TARGET_LINK_DIR/.vim
+    fi
+
+    # Check to see if we have a .config folder and create it if we do not
+    if [ ! -d "$TARGET_LINK_DIR/.config" ]; then
+        mkdir -p "$TARGET_LINK_DIR/.config"
+    fi
+
+    # Now we can link up the folders without fear of recursion
+    link "$1/git/templates/"        "$TARGET_LINK_DIR/.git_templates"
+#    link "$1/shell/fonts/"          "$TARGET_LINK_DIR/.fonts"
+    link "$1/vim/"                  "$TARGET_LINK_DIR/.vim"
+
+    # And link up the appropriate folders.
+#    link "$1/config/powerline"      "$TARGET_LINK_DIR/.config/powerline"
+
+    # And this is where we link all everything else
+    link "$1/git/gitattributes"     "$TARGET_LINK_DIR/.gitattributes"
+    link "$1/git/gitignore_global"  "$TARGET_LINK_DIR/.gitignore_global"
+    link "$1/shell/babunrc"         "$TARGET_LINK_DIR/.babunrc"
+    link "$1/shell/bash_logout"     "$TARGET_LINK_DIR/.bash_logout"
+    link "$1/shell/bash_profile"    "$TARGET_LINK_DIR/.bash_profile"
+    link "$1/shell/bashrc"          "$TARGET_LINK_DIR/.bashrc"
+#    link "$1/shell/curlrc"          "$TARGET_LINK_DIR/.curlrc"
+    link "$1/shell/dir_colors"      "$TARGET_LINK_DIR/.dir_colors"
+#    link "$1/shell/inputrc"         "$TARGET_LINK_DIR/.inputrc"
+#    link "$1/shell/keys"            "$TARGET_LINK_DIR/.keys"
+#    link "$1/shell/minttyrc"        "$TARGET_LINK_DIR/.minttyrc"
+#    link "$1/shell/profile"         "$TARGET_LINK_DIR/.profile"
+#    link "$1/shell/wgetrc"          "$TARGET_LINK_DIR/.wgetrc"
+    link "$1/vim/vimrc"             "$TARGET_LINK_DIR/.vimrc"
+
+    # Here we specify the files that will be copied and not linked. We do this
+    # so that the user is free to modify these files and cause no disturbance to
+    # the repo.
+    cp   "$1/git/gitconfig"         "$TARGET_LINK_DIR/.gitconfig"
+    cp   "$1/shell/bash_proxy"      "$TARGET_LINK_DIR/.bash_proxy"
+
+    # Only create the `.NERDTreeBookmarks` file if one doesn't already exist. We
+    # do not want to override one.
+    if [ ! -f "$TARGET_LINK_DIR/.NERDTreeBookmarks" ]; then
+        cp "$1/vim/NERDTreeBookmarks" "$TARGET_LINK_DIR/.NERDTreeBookmarks"
+    fi
+
+    # Here we do any `cygwin` specific links
+    if [ "$(uname -s | grep -c CYGWIN)" -gt 0 ]; then
+
+        chgrp Users "$TARGET_LINK_DIR/.gitconfig"
+        chgrp Users "$TARGET_LINK_DIR/.bash_proxy"
+        chgrp Users "$TARGET_LINK_DIR/.NERDTreeBookmarks"
+
+    # And now `vagrant` specific links
+    elif [ -d /home/vagrant ]; then
+
+        chown vagrant:vagrant "$TARGET_LINK_DIR/.gitconfig"
+        chown vagrant:vagrant "$TARGET_LINK_DIR/.bash_proxy"
+        chown vagrant:vagrant "$TARGET_LINK_DIR/.NERDTreeBookmarks"
+
+    fi
+
+    # Now lets change the file permissions
+    chmod 755 "$TARGET_LINK_DIR/.gitconfig"
+    chmod 755 "$TARGET_LINK_DIR/.bash_proxy"
+    chmod 755 "$TARGET_LINK_DIR/.NERDTreeBookmarks"
+
+}
+
+# vim: set syn=sh :

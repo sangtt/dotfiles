@@ -1,0 +1,169 @@
+#!/usr/bin/env bash
+
+# Source our `LS_COLORS`
+if [ "$(type -P gdircolors)" ]; then
+    eval `gdircolors "$HOME/.dir_colors"`
+elif [ "$(type -P dircolors)" ]; then
+    eval `dircolors "$HOME/.dir_colors"`
+else
+    e_error 'Could not source "$HOME/.dir_colors"'
+fi
+
+# Because this file is in `$DOTFILES_DIRECTORY` and the directory is added
+# to the `$PATH` variable, and this file is named `ls`, any references to `ls`
+# will trigger this command instead of the OS `ls` command.
+#
+# Using this knowledge we can create multiple versions of the `ls` command and
+# target each of them at specific OS's. Now because the Mac version of `ls` does
+# not have all of the options that everyone else has access to, we have to come
+# up with two different commands to handle these needs. Also if an invalid
+# option is passed to `ls` on a Mac it will throw an Error.
+#
+# So here we create two commands, noth called `list`. This `list` command will
+# be defined based upon the running OS.
+#
+# Here we define the `list` command for Mac users.
+if [ "$(is_mac)" == "yes" ]; then
+
+    # If we have installed the `coreutils` from mac we use the `gls` command.
+    if [ "$(type -P gls)" ]; then
+
+        # Define a `gls` specific `ls` command.
+        function list () {
+            command gls\
+                -f \
+                -h \
+                --color \
+                --ignore . \
+                --ignore .. \
+                "$@"
+        }
+
+    # It looks like it hasn't been installed
+    else
+
+        # Here we just fallback to the standard `ls`.
+        function list () {
+            command ls\
+                -f \
+                -h \
+                "$@"
+        }
+
+    fi
+
+# `Cygwin` has a more enhanced version of `ls` we will target it directly. The
+# "--ignores" that you see below are just there to exclude some system files
+# that shouldn't be showing up anyways.
+elif [ "$(is_cygwin)" == "yes" ]; then
+
+    # Define a `ls` command for cygwin
+    function list () {
+
+        # The files that are being hidden are all pretty much Windows OS files.
+        # This allows the `ls` command to be run in cygwin without polluting the
+        # output and creating a mess.
+        command ls \
+            -f \
+            -h \
+            --color \
+            --ignore="." \
+            --ignore=".." \
+            --ignore="bootmgr" \
+            --ignore="BOOTNXT" \
+            --ignore="desktop.ini" \
+            --ignore="hiberfil.sys" \
+            --ignore="pagefile.sys" \
+            --ignore="swapfile.sys" \
+            --ignore="ntuser*" \
+            --ignore="NTUSER*" \
+            --ignore="\$Recycle\.Bin" \
+            --ignore="\$RECYCLE\.BIN" \
+            --ignore="System\ Volume\ Information" \
+            "$@"
+    }
+
+# Everywhere else.
+else
+
+    # Define a `ls` command for everywhere else
+    function list () {
+
+        # If we are called via `ls` don't sort the output.
+        if [ "${FUNCNAME[1]}" == "ls" ]; then
+            command ls\
+                -h \
+                --color \
+                --ignore . \
+                --ignore .. \
+                "$@"
+
+        # We can now sort the `-l` data via the 9th column.
+        # `-f` ignore case
+        # `-V` alphanumeric sorting
+        # `-k` column`
+        else
+            command ls\
+                -h \
+                --color \
+                --ignore . \
+                --ignore .. \
+                "$@" | sort -f -V -k 9
+        fi
+
+    }
+
+fi
+
+# This is a command that will output a numeric versios of the file permissions
+OCTAL_PERMISSIONS="{k=0;for(i=0;i<=8;i++)k+=((substr(\$1,i+2,1)~/[rwx]/)*2^(8-i));if(k)printf(\" %0o \",k);print}"
+
+# This is where we overrite the `ls` command.
+function ls () {
+    if [ $(command ls -l | grep -v '^total' | wc -l) == "0" ]; then
+        echo "no directories, files, or links found"
+    else
+        list "$@"
+    fi
+}
+
+# Here we a pseudo alias for `ls -lA`. The difference here is that we list
+# directories first, then links, then everything else.
+function la () {
+    if [ $(command ls -lA | grep -v '^total' | wc -l) == "0" ]; then
+        echo "no directories, files, or links found"
+    else
+        list "$@" -lA | grep "^d" | awk "$OCTAL_PERMISSIONS" && \
+        list "$@" -lA | grep "^l" | awk "$OCTAL_PERMISSIONS" && \
+        list "$@" -lA | grep "^-" | awk "$OCTAL_PERMISSIONS"
+    fi
+}
+
+# Here we a pseudo alias for `ls -lA` whilst only outputting directories.
+function ld () {
+    if [ $(command ls -lA | grep "^d" | wc -l) == "0" ]; then
+        echo "no directories found"
+    else
+        list "$@" -lA | grep "^d" | awk "$OCTAL_PERMISSIONS"
+    fi
+}
+
+# Here we a pseudo alias for `ls -lA` whilst only outputting files.
+function lf () {
+    if [ $(command ls -lA | grep "^-" | wc -l) == "0" ]; then
+        echo "no files found"
+    else
+        list "$@" -lA | grep "^-" | awk "$OCTAL_PERMISSIONS"
+    fi
+}
+
+# Here we a pseudo alias for `ls -lA` whilst only outputting links.
+function ll () {
+    if [ $(command ls -lA | grep "^l" | wc -l) == "0" ]; then
+        echo "no links found"
+    else
+        list "$@" -lA | grep "^l" | awk "$OCTAL_PERMISSIONS"
+    fi
+}
+
+# vim: set syn=sh :

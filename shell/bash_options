@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+# Here we define some custom settings for Cygwin
+if [ "$(is_cygwin)" == "yes" ]; then
+
+    # This enables shell options for cygwin
+    export SHELLOPTS
+
+    # Complete `foo.exe` as `foo`, not `foo.exe`
+    shopt -s completion_strip_exe
+
+fi
+
+# Autocorrect typos in path names when using `cd`
+shopt -s cdspell
+
+# Check the window size after each command and, if necessary, update the values
+# of LINES and COLUMNS.
+shopt -s checkwinsize
+
+# Append to the Bash history file, rather than overwriting it
+shopt -s histappend
+
+# Case-insensitive globbing (used in pathname expansion)
+shopt -s nocaseglob
+
+# This causes all `**` to recurse into their children as well as the top level
+# instead of just matching the top level only
+shopt -s globstar
+
+# vim: set syn=sh :

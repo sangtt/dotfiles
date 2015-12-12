@@ -1,0 +1,57 @@
+map <C-n> :NERDTreeToggle<CR>
+
+cmap <C-p> <C-R>=expand("%:p:h") . "/" <CR>
+
+nmap <silent> <A-Up> :wincmd k<CR>
+nmap <silent> <A-Down> :wincmd j<CR>
+nmap <silent> <A-Left> :wincmd h<CR>
+nmap <silent> <A-Right> :wincmd l<CR>
+
+" Here we make a mapping so that I can paste an `ezh` character
+" inoremap <C-t> Ƹ
+
+" When wrapping is enabled make the motion keys behave as normal
+nnoremap j gj
+nnoremap k gk
+nnoremap $ <End>
+nnoremap 0 <Home>
+nnoremap ^ <Home>^
+
+" Here me way `Y` behave to the end of the line similar to `A`, `S`, `C` etc
+nnoremap Y y$
+
+" Make sure I don't enter that bullshit ex mode
+nnoremap Q <Nop>
+
+" I find the man page dialouge more harmful than useful. I never use it and
+" when it pops up, it totally ruins my train of thoght.
+nnoremap K <Nop>
+vnoremap K <Nop>
+
+" Here we make easier window navigation
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+
+" Map the arrow keys to reposition the viewport
+" nnoremap <Left>  zH
+" nnoremap <Down>  <C-e>
+" nnoremap <Up>    <C-y>
+" nnoremap <Right> zL
+" inoremap <Left>  <Esc>zHi
+" inoremap <Down>  <Esc><C-e>i
+" inoremap <Up>    <Esc><C-y>i
+" inoremap <Right> <Esc>zLi
+" vnoremap <Left>  zH
+" vnoremap <Down>  <C-e>
+" vnoremap <Up>    <C-y>
+" vnoremap <Right> zL
+
+" Here we create faux tab indentation
+nnoremap <Tab>   >>llll
+nnoremap <S-Tab> <<hhhh
+vnoremap >       >gv
+vnoremap <       <gv
+vnoremap <Tab>   >gv
+vnoremap <S-Tab> <gv

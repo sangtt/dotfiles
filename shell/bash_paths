@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+# Directories to be prepended to PATH
+# Ensure that this bin always takes precedence over `/usr/bin`
+declare -a DIRS_TO_PREPEND=(
+    "$JAVA_HOME/bin"
+    "/usr/local/bin"
+)
+
+# Directories to be appended to PATH
+declare -a DIRS_TO_APPEND=(
+    "/usr/bin"
+    "/usr/local"
+    "$HOME/bin"
+    "$HOME/.composer/vendor/bin"
+    "$HOME/.rvm/bin"
+    "$GOHOME/bin"
+    "$GOPATH/bin"
+    "$ANDROID_TOOLS/tools"
+    "$ANDROID_TOOLS/platform-tools"
+    "./vendor/bin"
+)
+
+# Prepend directories to PATH
+for index in "${DIRS_TO_PREPEND[@]}"
+do
+    PATH="${index}:$PATH"
+done
+
+# Append directories to PATH
+for index in "${DIRS_TO_APPEND[@]}"
+do
+    PATH="$PATH:${index}"
+done
+
+# Unset the Array variables
+unset DIRS_TO_PREPEND
+unset DIRS_TO_APPEND
+
+# Export the `$PATH` variable
+export PATH
+
+# vim: set syn=sh :

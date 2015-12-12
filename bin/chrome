@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# If we are running on Windows
+if [ "$(is_win)" == "yes" ]; then
+
+    # This needs to be updated to get the absolute windows style path
+    cygstart /cygdrive/c/Program\ Files\ \(x86\)/Google/Chrome/Application/chrome.exe "$1"
+
+# If we are running on Mac
+elif [ "$(is_mac)" == "yes" ]; then
+    open -a Google\ Chrome "$1"
+
+fi
+
+# vim: set syn=sh :

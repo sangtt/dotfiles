@@ -1,0 +1,20 @@
+" Set some default tab settings
+set tabstop=4
+set softtabstop=4
+set shiftwidth=4
+set expandtab
+set textwidth=0
+
+" Directories
+set wildignore+=*/backups/**
+set wildignore+=*/shell/fonts/**
+set wildignore+=*/vim/bundle/**
+set wildignore+=*/vim/plugins/**
+set wildignore+=*/vim/swaps/**
+set wildignore+=*/vim/undo/**
+
+" Files
+set wildignore+=*/.netrwhist
+
+" Nerdtree specific ignore
+let NERDTreeIgnore += ['^backups$', '^fonts$', '^bundle$', '^plugins$', '^swaps$', '^undo$', '.netrwhist$']
